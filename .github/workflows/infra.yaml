@@ -1,0 +1,50 @@
+name: NetflixFrontend stack build-deploy
+
+on:
+  push:
+    branches:
+     - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker images
+        run: |
+          DOCKER_IMAGE_TAG=frontend-v0.0.3-${{ github.run_number }}
+          docker buildx build --platform linux/amd64,linux/arm64 -t davidhei/netflix:${DOCKER_IMAGE_TAG} --push .
+
+      - name: Checkout infrastructure repo
+        uses: actions/checkout@v3
+        with:
+          repository: davidhei2023/NetflixInfra
+          token: ${{ secrets.REPO_TOKEN }}
+          path: ./NetflixInfra
+
+      - name: Update YAML manifests
+        run: |
+          cd ./NetflixInfra/NetflixFrontend
+          sed -i 's|image: .*$|image: davidhei/netflix:frontend-v0.0.3-${{ github.run_number }}|' frontend.yaml
+
+      - name: Commit and Push changes
+        run: |
+          cd ./NetflixInfra
+          git add .
+          git commit -m "Update NetflixFrontend image to frontend-v0.0.3-${{ github.run_number }}"
+          git push
