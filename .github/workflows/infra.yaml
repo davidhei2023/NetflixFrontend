@@ -1,4 +1,4 @@
-name: NetflixFrontend CI/CD
+name: NetflixFrontend stack build-deploy
 
 on:
   push:
@@ -9,9 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  build_and_push_image:
+  build:
     runs-on: ubuntu-latest
-    name: Build and Push Docker Image
 
     steps:
       - name: Checkout repository
@@ -26,18 +25,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker images
         run: |
           DOCKER_IMAGE_TAG=frontend-v0.0.3-${{ github.run_number }}
-          docker buildx build --platform linux/amd64,linux/arm64 -t davidhei/netflix:${DOCKER_IMAGE_TAG} --push
-
-  update_infrastructure:
-    runs-on: ubuntu-latest
-    name: Update Infrastructure Repository
-
-    steps:
-      - name: Checkout main repository
-        uses: actions/checkout@v3
+          docker buildx build --platform linux/amd64,linux/arm64 -t davidhei/netflix:${DOCKER_IMAGE_TAG} --push .
 
       - name: Checkout infrastructure repo
         uses: actions/checkout@v3
@@ -51,15 +42,11 @@ jobs:
           cd ./NetflixInfra/NetflixFrontend
           sed -i 's|image: .*$|image: davidhei/netflix:frontend-v0.0.3-${{ github.run_number }}|' frontend.yaml
 
-      - name: Configure Git
-        run: |
-          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
-          git config user.name "${{ secrets.GIT_USER_NAME }}"
-
       - name: Commit and Push changes
         run: |
           cd ./NetflixInfra
+          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+          git config user.name "${{ secrets.GIT_USER_NAME }}"
           git add .
           git commit -m "Update NetflixFrontend image to frontend-v0.0.3-${{ github.run_number }}"
           git push
-
