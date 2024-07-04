@@ -45,6 +45,8 @@ jobs:
       - name: Commit and Push changes
         run: |
           cd ./NetflixInfra
+          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+          git config user.name "${{ secrets.GIT_USER_NAME }}"
           git add .
           git commit -m "Update NetflixFrontend image to frontend-v0.0.3-${{ github.run_number }}"
           git push
