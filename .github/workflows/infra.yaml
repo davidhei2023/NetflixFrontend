@@ -62,3 +62,4 @@ jobs:
           git add .
           git commit -m "Update NetflixFrontend image to frontend-v0.0.3-${{ github.run_number }}"
           git push
+
