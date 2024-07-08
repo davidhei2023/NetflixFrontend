@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -23,8 +28,7 @@ jobs:
       - name: Build and push Docker images
         run: |
           DOCKER_IMAGE_TAG=frontend-v0.0.3-${{ github.run_number }}
-          docker build -t davidhei/netflix:${DOCKER_IMAGE_TAG} --push .
-
+          docker buildx build --platform linux/amd64,linux/arm64 -t davidhei/netflix:${DOCKER_IMAGE_TAG} --push .
       - name: Checkout infrastructure repo
         uses: actions/checkout@v3
         with:
@@ -36,7 +40,6 @@ jobs:
         run: |
           cd ./NetflixInfra/NetflixFrontend
           sed -i 's|image: .*$|image: davidhei/netflix:frontend-v0.0.3-${{ github.run_number }}|' frontend.yaml
-
       - name: Commit and Push changes
         run: |
           cd ./NetflixInfra
