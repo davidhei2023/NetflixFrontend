@@ -5,8 +5,6 @@ pipeline {
   label 'general'
 }
 
-
-
     triggers {
         githubPush()
     }
