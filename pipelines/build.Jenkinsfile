@@ -1,8 +1,7 @@
 pipeline {
     agent {
-   label 'general'
-}
-
+        label 'general'
+    }
 
     triggers {
         githubPush()   // trigger the pipeline upon push event in github
@@ -14,9 +13,6 @@ pipeline {
     }
 
     environment {
-        // GIT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        // TIMESTAMP = new Date().format("yyyyMMdd-HHmmss")
-
         IMAGE_TAG = "v1.0.$BUILD_NUMBER"
         IMAGE_BASE_NAME = "netflix-frontend-app"
 
@@ -36,22 +32,24 @@ pipeline {
 
         stage('Build & Push') {
             steps {
-                sh '''
-                  IMAGE_FULL_NAME=$DOCKER_USERNAME/$IMAGE_BASE_NAME:$IMAGE_TAG
-
-                  docker build -t $IMAGE_FULL_NAME .
-                  docker push $IMAGE_FULL_NAME
-                '''
+                script {
+                    def IMAGE_FULL_NAME = "${DOCKER_USERNAME}/${IMAGE_BASE_NAME}:${IMAGE_TAG}"
+                    sh '''
+                      docker build -t ${IMAGE_FULL_NAME} .
+                      docker push ${IMAGE_FULL_NAME}
+                    '''
+                    env.IMAGE_FULL_NAME = IMAGE_FULL_NAME // set IMAGE_FULL_NAME to the environment variable for the next stage
+                }
             }
         }
 
-         stage('Trigger Deploy') {
-             steps {
-                 build job: 'netflixDeploy', wait: false, parameters: [
-                     string(name: 'SERVICE_NAME', value: "NetflixFrontend")
-                     string(name: 'IMAGE_FULL_NAME_PARAM', value: "$IMAGE_FULL_NAME")
-           ]
-     }
- }
+        stage('Trigger Deploy') {
+            steps {
+                build job: 'netflixDeploy', wait: false, parameters: [
+                    string(name: 'SERVICE_NAME', value: "NetflixFrontend"),
+                    string(name: 'IMAGE_FULL_NAME_PARAM', value: "${env.IMAGE_FULL_NAME}")
+                ]
+            }
+        }
     }
 }
