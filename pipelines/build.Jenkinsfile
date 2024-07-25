@@ -34,10 +34,10 @@ pipeline {
             steps {
                 script {
                     def IMAGE_FULL_NAME = "${DOCKER_USERNAME}/${IMAGE_BASE_NAME}:${IMAGE_TAG}"
-                    sh '''
+                    sh """
                       docker build -t ${IMAGE_FULL_NAME} .
                       docker push ${IMAGE_FULL_NAME}
-                    '''
+                    """
                     env.IMAGE_FULL_NAME = IMAGE_FULL_NAME // set IMAGE_FULL_NAME to the environment variable for the next stage
                 }
             }
