@@ -13,6 +13,12 @@ pipeline {
                  steps {
                      sh 'echo linting...'
                  }
+                 post {
+                      always {
+                          junit 'lintingResult.xml'
+      }
+  }
+}
              }
             }
         }
