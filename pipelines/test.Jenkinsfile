@@ -13,11 +13,18 @@ pipeline {
                  steps {
                      sh 'echo linting...'
                  }
+                 post {
+                      always {
+                          junit 'lintingResult.xml'
+      }
+  }
+}
              }
             }
         }
         stage('Build and deploy to Test environment') {
             steps {
+
                 sh 'echo trigger build and deploy pipelines for test environment... wait until successful deployment'
             }
         }
