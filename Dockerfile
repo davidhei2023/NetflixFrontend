@@ -1,9 +1,9 @@
-FROM node:14-alpine AS build
+FROM python:3.9-slim
 
 WORKDIR /app
 COPY . .
-RUN npm install
-RUN npm run build
+RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["npm", "start"]
+ENV FLASK_APP=app.py
 
+CMD ["python3", "app.py"]
