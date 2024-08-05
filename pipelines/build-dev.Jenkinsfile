@@ -8,8 +8,8 @@ pipeline {
     }
 
     options {
-        timeout(time: 10, unit: 'MINUTES')
-        timestamps()
+        timeout(time: 10, unit: 'MINUTES')  // discard the build after 10 minutes of running
+        timestamps()  // display timestamp in console output
     }
 
     environment {
@@ -30,24 +30,20 @@ pipeline {
             }
         }
 
-        stage('Build & Push') {
+        stage('Build app container') {
             steps {
-                script {
-                    def IMAGE_FULL_NAME = "${DOCKER_USERNAME}/${IMAGE_BASE_NAME}:${IMAGE_TAG}"
-                    sh """
-                      docker build -t ${IMAGE_FULL_NAME} .
-                      docker push ${IMAGE_FULL_NAME}
-                    """
-                    env.IMAGE_FULL_NAME = IMAGE_FULL_NAME
-                }
+                sh '''
+                    IMAGE_FULL_NAME=$DOCKER_USERNAME/$IMAGE_BASE_NAME:$IMAGE_TAG
+                    docker build -t $IMAGE_FULL_NAME .
+                    docker push $IMAGE_FULL_NAME
+                '''
             }
         }
-
         stage('Trigger Deploy') {
             steps {
-                build job: 'netflixdev', wait: false, parameters: [
+                build job: 'NetflixDeployDev', wait: false, parameters: [
                     string(name: 'SERVICE_NAME', value: "NetflixFrontend"),
-                    string(name: 'IMAGE_FULL_NAME_PARAM', value: "${env.IMAGE_FULL_NAME}")
+                    string(name: 'IMAGE_FULL_NAME_PARAM', value: "$DOCKER_USERNAME/$IMAGE_BASE_NAME:$IMAGE_TAG")
                 ]
             }
         }
