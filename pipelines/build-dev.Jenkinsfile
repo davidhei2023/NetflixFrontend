@@ -33,7 +33,7 @@ pipeline {
         stage('Build app container') {
             steps {
                 sh '''
-                    IMAGE_FULL_NAME=$DOCKER_USERNAME/$IMAGE_BASE_NAME:$IMAGE_TAG
+                    IMAGE_FULL_NAME="$DOCKER_USERNAME/$IMAGE_BASE_NAME:$IMAGE_TAG"
                     docker build -t $IMAGE_FULL_NAME .
                     docker push $IMAGE_FULL_NAME
                 '''
